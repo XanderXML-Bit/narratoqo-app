@@ -1,0 +1,11 @@
+export { TTSProvider, TTSError } from './TTSProvider';
+export { BrowserTTSProvider } from './BrowserTTSProvider';
+export { OpenAIProvider } from './OpenAIProvider';
+export { ElevenLabsProvider } from './ElevenLabsProvider';
+export { PlayHTProvider } from './PlayHTProvider';
+export { DeepgramProvider } from './DeepgramProvider';
+export { GeminiProvider } from './GeminiProvider';
+export { WebSpeechProvider } from './WebSpeechProvider';
+export { KokoroProvider } from './KokoroProvider';
+export { PiperProvider } from './PiperProvider';
+export { TTSProviderFactory, getTTSFactory, resetTTSFactory } from './TTSProviderFactory';

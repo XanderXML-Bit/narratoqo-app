@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 128" role="img" aria-label="Narratoqo">
+  <g transform="scale(0.25)">
+  <defs>
+    <linearGradient id="nq-bg-w" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#nq-bg-w)"/>
+  <!-- Open page with sound waves: text becoming speech -->
+  <g fill="none" stroke="#042f2e" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M112 152c40-14 80-14 120 6v206c-40-20-80-20-120-6z" stroke-width="22"/>
+    <path d="M168 210h32M168 254h32M168 298h20" stroke-width="16"/>
+    <path d="M292 214c18 14 18 70 0 84" stroke-width="22"/>
+    <path d="M336 184c34 26 34 118 0 144" stroke-width="22"/>
+    <path d="M380 154c50 40 50 164 0 204" stroke-width="22"/>
+  </g>
+  </g>
+  <text x="152" y="86" font-family="'Space Grotesk', 'Space Grotesk Variable', system-ui, sans-serif" font-size="68" font-weight="700" fill="#14b8a6" letter-spacing="-1">Narratoqo</text>
+</svg>

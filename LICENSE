@@ -1,0 +1,8 @@
+Copyright (c) 2026 Zendren. All rights reserved.
+
+This repository and its contents are proprietary. No license is granted to use,
+copy, modify, or distribute this software, in whole or in part, without prior
+written permission from the copyright holder.
+
+Third-party packages and models used by this project remain under their own
+licenses (for example Kokoro-82M and Piper voice models on Hugging Face).
