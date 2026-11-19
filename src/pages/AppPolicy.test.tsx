@@ -7,6 +7,13 @@ import { AppPolicy } from './AppPolicy';
 import deployment from '../../vercel.json';
 
 describe('App policy destinations', () => {
+  it('credits Zendren in the footer', () => {
+    render(<SiteFooter />);
+    const credit = screen.getByRole('link', { name: 'Zendren' });
+    expect(credit).toHaveAttribute('href', 'https://zendren.net');
+    expect(credit.closest('p')?.textContent).toBe(`© ${new Date().getFullYear()} Zendren`);
+  });
+
   it('links Privacy to the app privacy section', () => {
     render(<SiteFooter />);
     expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy#privacy');
@@ -24,6 +31,8 @@ describe('App policy destinations', () => {
   it('discloses browser storage and optional network processing without adding legal terms', () => {
     render(<MemoryRouter><AppPolicy /></MemoryRouter>);
     expect(screen.getByText(/This page covers the Narratoqo browser app/)).toBeInTheDocument();
+    expect(screen.getByText(/Zendren LLC operates Narratoqo/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'hello@zendren.net' })).toHaveAttribute('href', 'mailto:hello@zendren.net');
     expect(screen.getByText(/Projects and generated audio.*IndexedDB/)).toBeInTheDocument();
     expect(screen.getByText(/Voice preferences.*localStorage/)).toBeInTheDocument();
     expect(screen.getByText(/Kokoro uses Cache Storage/)).toBeInTheDocument();

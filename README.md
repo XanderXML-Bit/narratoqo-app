@@ -82,4 +82,4 @@ Voice models are downloaded at run time and are not part of this repository. See
 
 ## License
 
-All rights reserved. See [LICENSE](LICENSE). © Zendren. Built by [Xander M. Lopez](https://xandermlopez.com).
+All rights reserved. See [LICENSE](LICENSE). © Zendren.

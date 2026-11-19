@@ -4,6 +4,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
+// Vite can embed Vercel system metadata when code reads import.meta.env as an object.
+// Remove these unused values before Vite loads the environment.
+for (const key of Object.keys(process.env)) {
+  if (key.startsWith('VITE_VERCEL_')) delete process.env[key]
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
