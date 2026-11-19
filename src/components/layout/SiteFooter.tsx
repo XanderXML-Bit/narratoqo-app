@@ -8,14 +8,6 @@ export function SiteFooter({ className = '' }: { className?: string }) {
           © {year}{' '}
           <a href="https://zendren.net" className="underline-offset-2 hover:underline hover:text-text-primary">
             Zendren
-          </a>{' '}
-          · Built by{' '}
-          <a
-            href="https://xandermlopez.com"
-            rel="author"
-            className="underline-offset-2 hover:underline hover:text-text-primary"
-          >
-            Xander M. Lopez
           </a>
         </p>
         <nav aria-label="Legal" className="flex gap-4">
