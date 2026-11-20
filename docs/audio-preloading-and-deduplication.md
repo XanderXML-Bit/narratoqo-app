@@ -12,43 +12,26 @@ When playing audiobooks, Narratoqo generates audio on-demand for each text segme
 
 ## Architecture
 
+[`Project.tsx`](../src/pages/Project.tsx) wires `useAudioGeneration` to `useSegmentPlayback`. Segment clicks and auto-advance use `playSegment`, which calls `generateSegmentAudio` and then starts preloading once playback begins.
+
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Project.tsx                               │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                  generateSegmentAudio()                      ││
-│  │  1. Check promise tracker (sync)                             ││
-│  │  2. Create placeholder promise (sync) - KEY STEP             ││
-│  │  3. Check memory cache (async)                               ││
-│  │  4. Generate via TTS provider → resolve promise → cache      ││
-│  └─────────────────────────────────────────────────────────────┘│
-│                              │                                   │
-│  ┌──────────────────┐       │        ┌───────────────────────┐ │
-│  │ handleSegmentClick│───────┼───────→│ preloadNextSegments   │ │
-│  │ (user click/auto) │       │        │ (background, no UI)   │ │
-│  └──────────────────┘       │        └───────────────────────┘ │
-└─────────────────────────────┼───────────────────────────────────┘
-                              │
-         ┌────────────────────┼────────────────────┐
-         │                    │                    │
-         ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ Promise Tracker │  │ AudioCacheManager│  │  TTS Provider   │
-│ (Ref<Map>)      │  │ (Memory Cache)   │  │ (API/Browser)   │
-└─────────────────┘  └────────┬────────┘  └─────────────────┘
-                              │
-                              ▼
-                    ┌─────────────────┐
-                    │   IndexedDB     │
-                    │ (Persistent)    │
-                    └─────────────────┘
+useSegmentPlayback: playSegment
+  ├─ await generateSegmentAudio (foreground)
+  ├─ start playback
+  └─ preloadNextSegments → generateSegmentAudio (background)
+
+useAudioGeneration: generateSegmentAudio
+  1. Reuse or register a promise for the segment (synchronous).
+  2. Look up audio in AudioCacheManager (memory and IndexedDB).
+  3. On a cache miss, queue TTS synthesis and cache the result.
+  4. Settle the promise and remove it from the tracker.
 ```
 
 ## Key Components
 
 ### 1. Promise Tracker (`generationPromisesRef`)
 
-Location: `src/pages/Project.tsx:77`
+Source: [`generationPromisesRef` in `useAudioGeneration`](https://github.com/XanderXML-Bit/narratoqo-app/blob/d26be5fe548f2bdfbffe650a3609d79278d29a1a/src/hooks/useAudioGeneration.ts#L34).
 
 ```typescript
 const generationPromisesRef = useRef<Map<number, Promise<CachedAudio | undefined>>>(new Map());
@@ -62,7 +45,7 @@ A React ref holding a Map of segment indices to their in-progress generation pro
 
 ### 2. Audio Cache Manager
 
-Location: `src/services/audio/AudioCacheManager.ts`
+Source: [`AudioCacheManager.ts`](../src/services/audio/AudioCacheManager.ts).
 
 In-memory cache backed by IndexedDB. Provides fast lookups without hitting the database for every request.
 
@@ -79,9 +62,9 @@ await audioCacheManager.save(cacheEntry);
 
 ### 3. Generate Segment Audio Function
 
-Location: `src/pages/Project.tsx:210-287`
+Source: [`generateSegmentAudio` in `useAudioGeneration`](https://github.com/XanderXML-Bit/narratoqo-app/blob/d26be5fe548f2bdfbffe650a3609d79278d29a1a/src/hooks/useAudioGeneration.ts#L74-L157).
 
-The core function that handles all audio generation with deduplication using the **placeholder promise pattern**:
+The core function handles segment audio generation using the **placeholder promise pattern**. This excerpt shows the deduplication flow; the implementation also filters cached audio by provider and voice, and promotes an existing queued preload when playback requests that segment.
 
 ```typescript
 const generateSegmentAudio = useCallback(async (
@@ -103,6 +86,7 @@ const generateSegmentAudio = useCallback(async (
     resolvePromise = resolve;
     rejectPromise = reject;
   });
+  placeholderPromise.catch(() => {}); // Avoid an unhandled rejection if no caller joins.
   generationPromisesRef.current.set(segmentIndex, placeholderPromise);
 
   try {
@@ -113,8 +97,13 @@ const generateSegmentAudio = useCallback(async (
       return cached;
     }
 
-    // 4. Generate new audio
-    const result = await provider.synthesize({ text, voiceId });
+    // 4. Generate new audio through the shared synthesis queue
+    const result = await synthesisQueueRef.current!.enqueue(
+      segmentIndex,
+      () => provider.synthesize({ text, voiceId }),
+      showSpinner ? 'foreground' : 'background',
+    );
+    // ...build cacheEntry from result...
     await saveCachedAudio(cacheEntry);
     await audioCacheManager.save(cacheEntry);
 
@@ -131,7 +120,7 @@ const generateSegmentAudio = useCallback(async (
 
 ### 4. Preload Next Segments
 
-Location: `src/pages/Project.tsx:305-324`
+Source: [`preloadNextSegments` in `useAudioGeneration`](https://github.com/XanderXML-Bit/narratoqo-app/blob/d26be5fe548f2bdfbffe650a3609d79278d29a1a/src/hooks/useAudioGeneration.ts#L159-L177).
 
 Preloads the next 3 readable segments after the current one. Only preloads segments that contain actual readable text (skips empty/whitespace segments):
 
@@ -151,7 +140,9 @@ const preloadNextSegments = useCallback(async (fromIndex: number, count: number 
     // Pass showSpinner=false for background preloading
     // Add .catch() to prevent unhandled promise rejections
     generateSegmentAudio(nextIndex, false)
-      .catch(error => console.warn(`Preload segment ${nextIndex} failed:`, error));
+      .catch(error => {
+        if (!(error instanceof SynthesisCancelledError)) console.warn(`Preload segment ${nextIndex} failed:`, error);
+      });
 
     preloaded++;
     index = nextIndex;
@@ -159,9 +150,9 @@ const preloadNextSegments = useCallback(async (fromIndex: number, count: number 
 }, [currentProject, segments, generateSegmentAudio]);
 ```
 
-Called after audio starts playing to ensure upcoming segments are ready.
+[`playSegment` in `useSegmentPlayback`](https://github.com/XanderXML-Bit/narratoqo-app/blob/d26be5fe548f2bdfbffe650a3609d79278d29a1a/src/hooks/useSegmentPlayback.ts#L236-L250) calls this after starting playback. Cache misses go into the [synthesis queue](../src/services/audio/SynthesisQueue.ts), which runs one synthesis at a time and prioritizes foreground requests.
 
-**Important**: The `.catch()` handler is required to prevent unhandled promise rejection warnings in the console when preloading fails (e.g., due to network issues). The error is logged but doesn't interrupt playback.
+The `.catch()` handles rejected promises when the preload joins an in-flight request. It ignores intentional queue cancellations and logs other rejections without interrupting playback.
 
 ## Race Condition Prevention
 
@@ -212,21 +203,14 @@ The key insight is to **track the promise BEFORE any async operation**:
 
 ### Preload Count
 
-Set in `Project.tsx` `preloadNextSegments`:
-
-```typescript
-const preloadNextSegments = useCallback(async (fromIndex: number, count: number = 2)
-```
-
-The default is 2 segments ahead, which provides a good balance between seamless playback and not over-fetching.
+`preloadNextSegments` defaults to three upcoming readable segments, and `playSegment` explicitly requests three.
 
 ### Cache Limits
 
 Set in `AudioCacheManager.ts`:
 
-- LRU eviction when cache size exceeds limit
-- Per-project audio cleanup on project deletion
-- Automatic cleanup of old entries
+- Least-recently-accessed entries are evicted when the in-memory cache exceeds its limit.
+- `pruneDatabase` can remove old IndexedDB entries when called; it is not scheduled automatically.
 
 ## Debugging
 
@@ -257,7 +241,9 @@ const generateSegmentAudio = useCallback(async (segmentIndex, showSpinner) => {
 
 ## Related Files
 
-- `src/pages/Project.tsx` - Main playback logic with deduplication
+- [`src/pages/Project.tsx`](../src/pages/Project.tsx) - Wires the generation and playback hooks
+- [`src/hooks/useAudioGeneration.ts`](../src/hooks/useAudioGeneration.ts) - Segment generation, preloading, and deduplication
+- [`src/hooks/useSegmentPlayback.ts`](../src/hooks/useSegmentPlayback.ts) - Segment playback and preload trigger
 - `src/services/audio/AudioCacheManager.ts` - Memory cache with IndexedDB backing
 - `src/services/audio/AudioPlayer.ts` - Audio playback with Howler.js
 - `src/db/schema.ts` - IndexedDB operations (`saveCachedAudio`, `getCachedAudio`)

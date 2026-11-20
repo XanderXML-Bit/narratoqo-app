@@ -2,32 +2,27 @@
  * AdMob Configuration for Narratoqo
  *
  * Contains all ad unit IDs for iOS and Android platforms.
- * Narratoqo uses interstitial ads shown periodically during audiobook playback.
+ * The public snapshot does not call the ad service from the app.
  *
- * SETUP REQUIRED:
- * 1. Create an AdMob account at https://admob.google.com
- * 2. Create an app for iOS and Android
- * 3. Create interstitial ad units for each platform
- * 4. Replace the placeholder IDs below with your actual IDs
- * 5. Update AndroidManifest.xml with your Android App ID
- * 6. Update iOS Info.plist with your iOS App ID
+ * Follow-up for the Android and iOS app and interstitial IDs, including the
+ * matching native app IDs: https://github.com/XanderXML-Bit/narratoqo-app/issues/2
  */
 
 import { Capacitor } from '@capacitor/core';
 
-// App IDs - REPLACE WITH YOUR ACTUAL APP IDs FROM ADMOB
+// Placeholder app IDs
 export const ADMOB_APP_IDS = {
-  android: 'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX', // TODO: Replace with actual Android App ID
-  ios: 'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX',     // TODO: Replace with actual iOS App ID
+  android: 'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX',
+  ios: 'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX',
 };
 
-// Production Ad Unit IDs - REPLACE WITH YOUR ACTUAL AD UNIT IDs FROM ADMOB
+// Placeholder production ad unit IDs
 const AD_UNITS = {
   android: {
-    interstitial: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Replace with actual interstitial ad unit ID
+    interstitial: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
   },
   ios: {
-    interstitial: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Replace with actual interstitial ad unit ID
+    interstitial: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
   },
 };
 
@@ -42,8 +37,7 @@ const TEST_AD_UNITS = {
   },
 };
 
-// Use test ads in development mode
-// Set to false and update production IDs before release
+// Use test ads in development or while the Android app ID is a placeholder.
 const USE_TEST_ADS = import.meta.env.DEV || ADMOB_APP_IDS.android.includes('XXXX');
 
 /**
