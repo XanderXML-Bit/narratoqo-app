@@ -62,7 +62,7 @@ Vitest covers text import and segmentation, voice providers, audio playback and 
 
 ## Configuration
 
-The web app needs no environment variables or secrets (`.env.example` only documents that). Everything is configured in the in-app Settings dialog:
+The web app needs no environment variables. Configure voice and playback preferences in Settings.
 
 | Setting | Default | Where it is stored |
 |---|---|---|
@@ -73,6 +73,17 @@ The web app needs no environment variables or secrets (`.env.example` only docum
 | Downloaded voice models | none | Cache Storage (Kokoro), Origin Private File System (Piper) |
 
 On-device models and runtimes load from Hugging Face (`huggingface.co`, `*.hf.co`) and from version-pinned jsDelivr paths. The Content-Security-Policy in `vercel.json` and `index.html` allows those version-pinned runtime paths plus the Hugging Face model hosts (the `*.hf.co` entry is a wildcard). `src/csp.test.ts` fails if a dependency upgrade changes the runtime versions without updating the CSP.
+
+### Configure AdMob for native builds
+
+The web app runs without ads. The native ad service requires both IDs for the target platform. See `.env.example` for the variable names.
+
+1. Export the platform's app ID and interstitial unit ID in your build shell.
+2. Run `npm run build`.
+3. Run `npx cap sync android` or `npx cap sync ios` for your target.
+4. For Android, run Gradle from the same shell. For iOS, pass `VITE_ADMOB_IOS_APP_ID="$VITE_ADMOB_IOS_APP_ID"` to `xcodebuild` or set it in Xcode.
+
+The public app has no interstitial placements.
 
 ## Deploy
 
