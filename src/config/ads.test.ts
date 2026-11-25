@@ -1,44 +1,63 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Capacitor } from '@capacitor/core';
 
 vi.mock('@capacitor/core', () => ({
-  Capacitor: {
-    getPlatform: vi.fn(() => 'web'),
-    isNativePlatform: vi.fn(() => false),
-  },
+  Capacitor: { getPlatform: vi.fn() },
 }));
 
-import { getAdUnitId, isAdSupported, isUsingTestAds, getAppId, ADMOB_APP_IDS } from './ads';
+const appId = 'ca-app-pub-1234567890123456~1234567890';
+const interstitialId = 'ca-app-pub-1234567890123456/0987654321';
 
-describe('ads config', () => {
-  it('exports expected functions', () => {
-    expect(typeof getAdUnitId).toBe('function');
-    expect(typeof isAdSupported).toBe('function');
-    expect(typeof isUsingTestAds).toBe('function');
-    expect(typeof getAppId).toBe('function');
+beforeEach(() => {
+  for (const platform of ['ANDROID', 'IOS']) {
+    vi.stubEnv(`VITE_ADMOB_${platform}_APP_ID`, undefined);
+    vi.stubEnv(`VITE_ADMOB_${platform}_INTERSTITIAL_ID`, undefined);
+  }
+  vi.resetModules();
+});
+
+afterEach(() => vi.unstubAllEnvs());
+
+describe.each(['android', 'ios'])('%s ads', (platform) => {
+  const prefix = `VITE_ADMOB_${platform.toUpperCase()}`;
+
+  beforeEach(() => vi.mocked(Capacitor.getPlatform).mockReturnValue(platform));
+
+  it.each([
+    ['neither ID', undefined, undefined],
+    ['only an app ID', appId, undefined],
+    ['only an ad unit ID', undefined, interstitialId],
+    ['a blank app ID', '   ', interstitialId],
+    ['a malformed ad unit ID', appId, appId],
+  ])('disables ads with %s', async (_condition, app, interstitial) => {
+    vi.stubEnv(`${prefix}_APP_ID`, app);
+    vi.stubEnv(`${prefix}_INTERSTITIAL_ID`, interstitial);
+    const { getInterstitialAdId } = await import('./ads');
+    expect(getInterstitialAdId()).toBeNull();
   });
 
-  it('isAdSupported returns false on web', () => {
-    expect(isAdSupported()).toBe(false);
-  });
+  it('uses the configured interstitial ID for this platform only', async () => {
+    const otherPlatform = platform === 'android' ? 'IOS' : 'ANDROID';
+    vi.stubEnv(`VITE_ADMOB_${otherPlatform}_APP_ID`, appId);
+    vi.stubEnv(`VITE_ADMOB_${otherPlatform}_INTERSTITIAL_ID`, interstitialId);
+    const disabled = await import('./ads');
+    expect(disabled.getInterstitialAdId()).toBeNull();
 
-  it('isUsingTestAds returns true when placeholder IDs present', () => {
-    expect(isUsingTestAds()).toBe(true);
+    const configuredId = interstitialId.replace('0987654321', '0123456789');
+    vi.stubEnv(`${prefix}_APP_ID`, ` ${appId} `);
+    vi.stubEnv(`${prefix}_INTERSTITIAL_ID`, ` ${configuredId} `);
+    vi.resetModules();
+    const { getInterstitialAdId } = await import('./ads');
+    expect(getInterstitialAdId()).toBe(configuredId);
   });
+});
 
-  it('getAdUnitId returns test ad ID on web fallback', () => {
-    const id = getAdUnitId('interstitial');
-    expect(typeof id).toBe('string');
-    expect(id.length).toBeGreaterThan(0);
-    // Falls back to android test ad unit
-    expect(id).toBe('ca-app-pub-3940256099942544/1033173712');
-  });
-
-  it('getAppId returns null on web', () => {
-    expect(getAppId()).toBeNull();
-  });
-
-  it('ADMOB_APP_IDS has android and ios keys', () => {
-    expect(ADMOB_APP_IDS).toHaveProperty('android');
-    expect(ADMOB_APP_IDS).toHaveProperty('ios');
-  });
+it('keeps ads off on web even with all IDs set', async () => {
+  vi.mocked(Capacitor.getPlatform).mockReturnValue('web');
+  for (const platform of ['ANDROID', 'IOS']) {
+    vi.stubEnv(`VITE_ADMOB_${platform}_APP_ID`, appId);
+    vi.stubEnv(`VITE_ADMOB_${platform}_INTERSTITIAL_ID`, interstitialId);
+  }
+  const { getInterstitialAdId } = await import('./ads');
+  expect(getInterstitialAdId()).toBeNull();
 });
