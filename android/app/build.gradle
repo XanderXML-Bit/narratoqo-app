@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+def adMobAppId = (System.getenv('VITE_ADMOB_ANDROID_APP_ID') ?: '').trim()
+def interstitialId = (System.getenv('VITE_ADMOB_ANDROID_INTERSTITIAL_ID') ?: '').trim()
+def adMobEnabled = (adMobAppId ==~ /ca-app-pub-[0-9]{16}~[0-9]{10}/) &&
+                   (interstitialId ==~ /ca-app-pub-[0-9]{16}\/[0-9]{10}/)
+
 android {
     namespace = "app.narratoqo"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -9,6 +14,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 10
         versionName "0.1.0"
+        manifestPlaceholders = [adMobAppId: adMobEnabled ? adMobAppId : '', adMobEnabled: adMobEnabled.toString()]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

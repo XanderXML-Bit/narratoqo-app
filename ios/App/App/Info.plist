@@ -55,7 +55,9 @@
 	<string>Narratoqo may use speech recognition for dictation features in future updates.</string>
 	<!-- AdMob App ID -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX</string>
+	<string>$(VITE_ADMOB_IOS_APP_ID)</string>
+	<key>GADDelayAppMeasurementInit</key>
+	<true/>
 	<!-- App Tracking Transparency (iOS 14+) -->
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier will be used to deliver personalized ads to you.</string>
