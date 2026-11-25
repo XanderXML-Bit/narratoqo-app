@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { siteMetadata } from './siteMetadata'
 
 // Vite can embed Vercel system metadata when code reads import.meta.env as an object.
 // Remove these unused values before Vite loads the environment.
@@ -12,7 +13,7 @@ for (const key of Object.keys(process.env)) {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [siteMetadata(), react(), tailwindcss()],
   esbuild: {
     drop: ['console', 'debugger'],
   },
