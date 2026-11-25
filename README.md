@@ -60,6 +60,21 @@ npm run build
 
 Vitest covers text import and segmentation, voice providers, audio playback and caching, and reader components. Run `npm run test:watch` while editing.
 
+### Browser smoke tests
+
+Run the Chromium checks against the production build.
+
+```bash
+npx playwright install chromium
+bash tests/browser/prepare-model.sh
+npm run build
+npm run test:browser
+```
+
+The setup script downloads and verifies the pinned Kokoro model and voice files. CI caches them for later runs.
+Chromium checks the speed dialog with the keyboard, then plays the sample with the local fixture.
+After a reload, the playback check blocks model requests and verifies that the sample plays from IndexedDB.
+
 ## Configuration
 
 The web app needs no environment variables. Configure voice and playback preferences in Settings.

@@ -30,6 +30,7 @@ import { PROVIDER_LABELS } from '@/services/tts/providerDefaults';
 import { KokoroProvider } from '@/services/tts/KokoroProvider';
 import { PiperProvider } from '@/services/tts/PiperProvider';
 import { OnDeviceNotice } from '@/components/common/OnDeviceNotice';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { useAudioGeneration } from '@/hooks/useAudioGeneration';
 import { useSegmentPlayback, SEEK_STEP_SECONDS } from '@/hooks/useSegmentPlayback';
@@ -242,6 +243,7 @@ export function Project() {
   if (fullAudioMode) {
     return (
       <ViewErrorBoundary viewName="Full Audio">
+        <OfflineBanner />
         <FullAudioView
           projectId={id || ''}
           segments={segments}
@@ -284,6 +286,7 @@ export function Project() {
         className={`flex-1 overflow-auto p-4 sm:p-6 ${isMobile ? 'pt-16 pb-20' : ''}`}
         ref={textContentRef}
       >
+        <OfflineBanner className="max-w-3xl mx-auto mb-4 rounded-lg" />
         <OnDeviceNotice className="max-w-3xl mx-auto mb-4" />
         {segments.length === 0 ? (
           <div className="max-w-3xl mx-auto flex flex-col items-center justify-center py-16 text-center">

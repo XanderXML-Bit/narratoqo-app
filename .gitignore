@@ -32,6 +32,8 @@ nul
 
 # Test coverage
 coverage
+test-results
+playwright-report
 
 # Environment variables
 .env

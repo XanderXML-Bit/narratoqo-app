@@ -33,14 +33,14 @@ describe('BottomSheet', () => {
     expect(screen.getByText('Sheet Content')).toBeInTheDocument();
   });
 
-  it('should render title when provided', () => {
+  it('uses the title as the accessible name of the modal dialog', () => {
     render(
       <BottomSheet isOpen={true} onClose={vi.fn()} title="Settings">
         <div>Content</div>
       </BottomSheet>
     );
 
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toHaveAttribute('aria-modal', 'true');
   });
 
   it('should render close button by default', () => {
@@ -80,19 +80,17 @@ describe('BottomSheet', () => {
 
   it('should call onClose when backdrop is clicked', () => {
     const onClose = vi.fn();
-    const { container } = render(
+    const { baseElement } = render(
       <BottomSheet isOpen={true} onClose={onClose}>
         <div>Content</div>
       </BottomSheet>
     );
 
-    // Find the backdrop (first child div with bg-black class)
-    const backdrop = container.querySelector('.bg-black\\/60');
-    if (backdrop) {
-      fireEvent.click(backdrop);
-      act(() => { vi.advanceTimersByTime(200); });
-      expect(onClose).toHaveBeenCalledTimes(1);
-    }
+    const backdrop = baseElement.querySelector('.bg-black\\/60');
+    if (!backdrop) throw new Error('Missing sheet backdrop');
+    fireEvent.click(backdrop);
+    act(() => { vi.advanceTimersByTime(200); });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('should close on Escape key', () => {
@@ -130,13 +128,12 @@ describe('BottomSheet', () => {
   });
 
   it('should apply custom maxHeight', () => {
-    const { container } = render(
+    render(
       <BottomSheet isOpen={true} onClose={vi.fn()} maxHeight={50}>
         <div>Content</div>
       </BottomSheet>
     );
 
-    const sheet = container.querySelector('.bottom-sheet-content');
-    expect(sheet).toHaveStyle({ maxHeight: '50vh' });
+    expect(screen.getByRole('dialog')).toHaveStyle({ maxHeight: '50vh' });
   });
 });
