@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useDialogFocus } from '@/hooks/useDialogFocus';
 
@@ -87,8 +88,8 @@ export function BottomSheet({
 
   if (!isOpen && !isClosing) return null;
 
-  return (
-    <div className="fixed inset-0 z-50">
+  return createPortal(
+    <div className="fixed inset-0 z-60">
       {/* Backdrop */}
       <div
         className={`absolute inset-0 bg-black/60 ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
@@ -147,6 +148,7 @@ export function BottomSheet({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

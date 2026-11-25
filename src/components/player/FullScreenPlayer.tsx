@@ -117,7 +117,7 @@ export function FullScreenPlayer({
 
   return (
     <div
-      className={`fixed inset-0 ${isSpeedSelectorOpen ? 'z-60' : 'z-50'} bg-surface flex flex-col animate-slide-up`}
+      className="fixed inset-0 z-50 bg-surface flex flex-col animate-slide-up"
       style={SAFE_AREA_PADDING_STYLE}
     >
       {/* Header */}

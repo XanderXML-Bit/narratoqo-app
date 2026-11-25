@@ -38,7 +38,9 @@ export function SpeedSelector({
             >
               <div>
                 <span className="font-medium">{option.label}</span>{' '}
-                <span className="ml-2 text-sm text-text-muted">{option.description}</span>
+                <span className={`ml-2 text-sm ${isSelected ? 'text-text-primary' : 'text-text-muted'}`}>
+                  {option.description}
+                </span>
               </div>
               {isSelected && <Check className="w-5 h-5" />}
             </button>

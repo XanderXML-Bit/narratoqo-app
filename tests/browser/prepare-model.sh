@@ -9,7 +9,7 @@ base='https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve'
 revision='1939ad2a8e416c0acfeecc08a694d14ef25f2231'
 
 while read -r checksum asset; do
-  if printf '%s  %s\n' "$checksum" "$asset" | shasum -a 256 -c --status; then
+  if [[ -f "$asset" ]] && printf '%s  %s\n' "$checksum" "$asset" | shasum -a 256 -c --status; then
     continue
   fi
   mkdir -p "$(dirname "$asset")"
