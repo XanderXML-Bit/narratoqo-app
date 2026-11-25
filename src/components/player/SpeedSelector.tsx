@@ -21,7 +21,7 @@ export function SpeedSelector({
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Playback Speed" maxHeight={60}>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Playback speed" maxHeight={60}>
       <div className="space-y-1">
         {SPEED_OPTIONS.map((option) => {
           const isSelected = Math.abs(currentSpeed - option.value) < 0.01;
@@ -29,6 +29,7 @@ export function SpeedSelector({
             <button
               key={option.value}
               onClick={() => handleSelect(option.value)}
+              aria-pressed={isSelected}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors touch-feedback ${
                 isSelected
                   ? 'bg-primary/20 text-primary'
@@ -36,7 +37,7 @@ export function SpeedSelector({
               }`}
             >
               <div>
-                <span className="font-medium">{option.label}</span>
+                <span className="font-medium">{option.label}</span>{' '}
                 <span className="ml-2 text-sm text-text-muted">{option.description}</span>
               </div>
               {isSelected && <Check className="w-5 h-5" />}

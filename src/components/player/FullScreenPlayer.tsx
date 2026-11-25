@@ -244,9 +244,13 @@ export function FullScreenPlayer({
       <div className="px-6 py-4 flex items-center justify-between">
         {/* Speed */}
         <button
-          onClick={() => setIsSpeedSelectorOpen(true)}
+          onClick={(event) => {
+            event.currentTarget.focus();
+            setIsSpeedSelectorOpen(true);
+          }}
           className="touch-target px-3 py-2 bg-surface-light rounded-lg text-text-secondary hover:text-text-primary"
-          aria-label={`Playback speed: ${speed}x. Tap to change.`}
+          aria-label={`Playback speed: ${speed}x`}
+          aria-haspopup="dialog"
         >
           <span className="font-medium">{speed}x</span>
         </button>

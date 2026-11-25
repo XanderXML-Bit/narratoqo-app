@@ -33,14 +33,14 @@ describe('BottomSheet', () => {
     expect(screen.getByText('Sheet Content')).toBeInTheDocument();
   });
 
-  it('should render title when provided', () => {
+  it('uses the title as the accessible name of the modal dialog', () => {
     render(
       <BottomSheet isOpen={true} onClose={vi.fn()} title="Settings">
         <div>Content</div>
       </BottomSheet>
     );
 
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toHaveAttribute('aria-modal', 'true');
   });
 
   it('should render close button by default', () => {

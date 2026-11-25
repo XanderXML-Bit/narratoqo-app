@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useId, useRef, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function BottomSheet({
   maxHeight = 90,
 }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
@@ -34,13 +36,14 @@ export function BottomSheet({
 
   // Close with animation
   const handleClose = useCallback(() => {
+    if (isClosing) return;
     setIsClosing(true);
     setTimeout(() => {
       setIsClosing(false);
       setDragOffset(0);
       onClose();
     }, 200);
-  }, [onClose]);
+  }, [isClosing, onClose]);
 
   // Touch event handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -71,24 +74,16 @@ export function BottomSheet({
     }
   }, [dragOffset, handleClose]);
 
-  // Handle escape key
+  useDialogFocus(sheetRef, isOpen, handleClose);
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        handleClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
-
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
-  }, [isOpen, handleClose]);
+  }, [isOpen]);
 
   if (!isOpen && !isClosing) return null;
 
@@ -103,6 +98,10 @@ export function BottomSheet({
       {/* Sheet */}
       <div
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        tabIndex={-1}
         className={`absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl ${
           isClosing ? 'animate-slide-down' : 'animate-slide-up'
         } bottom-sheet-content`}
@@ -129,7 +128,7 @@ export function BottomSheet({
         {(title || showCloseButton) && (
           <div className="flex items-center justify-between px-4 pb-4">
             {title && (
-              <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+              <h2 id={titleId} className="text-lg font-semibold text-text-primary">{title}</h2>
             )}
             {showCloseButton && (
               <button
