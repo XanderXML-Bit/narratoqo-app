@@ -34,10 +34,13 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-        <!-- AdMob App ID -->
+        <!-- Skip the SDK startup provider in builds without both AdMob IDs. -->
+        <provider
+            android:name="com.google.android.gms.ads.MobileAdsInitProvider"
+            android:enabled="${adMobEnabled}" />
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"/>
+            android:value="${adMobAppId}" />
     </application>
 
     <!-- Permissions -->
