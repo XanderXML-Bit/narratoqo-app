@@ -1,8 +1,10 @@
 # Narratoqo
 
-Free audiobook narration in the browser: paste text, import an article or open a file, and hear it read by neural voices that run on your device, with word-by-word highlighting.
+[![CI](https://github.com/XanderXML-Bit/narratoqo-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/XanderXML-Bit/narratoqo-app/actions/workflows/ci.yml)
 
-**Live:** https://narratoqo.vercel.app. No account, no payment and no API key. The neural voices (Kokoro and Piper) run locally through WebAssembly, so the text you narrate stays on your device. Projects and generated audio are saved in your browser.
+Narratoqo gives readers free audiobook narration for their own text and articles, with word-by-word highlighting.
+
+[Open Narratoqo](https://narratoqo.vercel.app) to try a sample with no account or API key. Kokoro and Piper run on your device through WebAssembly. The browser stores projects and generated audio.
 
 | Desktop | Mobile |
 |---|---|
@@ -45,12 +47,18 @@ npm run dev        # http://localhost:5173
 
 `@huggingface/transformers` depends on `onnxruntime-node`, whose install script tries to download optional CUDA binaries, and that download can fail on Linux. The flag above skips it. The browser app uses the WebAssembly runtime and never needs CUDA.
 
-| Script | What it does |
-|---|---|
-| `npm run build` | Type-checks (`tsc -b`) and builds to `dist/` |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest unit and component tests |
-| `npm run preview` | Serves the production build locally |
+## Tests
+
+Run the same checks as CI after installing dependencies.
+
+```bash
+npx tsc -b --noEmit
+npm run lint
+npm run test
+npm run build
+```
+
+Vitest covers text import and segmentation, voice providers, audio playback and caching, and reader components. Run `npm run test:watch` while editing.
 
 ## Configuration
 
@@ -71,6 +79,10 @@ On-device models and runtimes load from Hugging Face (`huggingface.co`, `*.hf.co
 The app is a static site. `npm run build` writes it to `dist/`, and the live copy is hosted on Vercel. `vercel.json` routes `/`, `/project/*`, and `/privacy` to the single-page app and sets security headers. Other paths return the styled `404.html` with HTTP 404.
 
 The Capacitor iOS and Android projects in `ios/` and `android/` are not part of the web deployment.
+
+## Architecture
+
+React renders the library and reader. The reader sends segments to voice providers in `src/services/tts/` and plays audio with Howler. Zustand holds application state, and Dexie stores projects and cached audio in IndexedDB.
 
 ## Brand
 
