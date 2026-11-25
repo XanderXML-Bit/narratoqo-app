@@ -2,7 +2,8 @@ import { expect, test as base } from '@playwright/test';
 
 const test = base.extend({
   browser: [async ({ playwright }, use) => {
-    const cdpURL = process.env.ZERO_MAC_CDP_URL;
+    // Connect to an existing Chromium instance when a CDP endpoint is provided.
+    const cdpURL = process.env.PLAYWRIGHT_CDP_URL;
     if (cdpURL) {
       await use(await playwright.chromium.connectOverCDP(cdpURL));
     } else {
@@ -18,6 +19,26 @@ const test = base.extend({
 
 const modelURL = 'https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/';
 const runtimeURL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/';
+const reportOfflineForSuite = process.env.PLAYWRIGHT_REPORT_OFFLINE === '1';
+
+async function reportOffline(page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'onLine', { get: () => false });
+    window.dispatchEvent(new Event('offline'));
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  if (reportOfflineForSuite) await reportOffline(page);
+});
+
+test('the offline banner leaves the new project button clickable', async ({ page }) => {
+  if (!reportOfflineForSuite) await reportOffline(page);
+  await page.goto('/');
+  await expect(page.getByRole('alert').filter({ hasText: /Cloud voices are unavailable/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Create new project' }).click({ timeout: 5_000 });
+  await expect(page.getByRole('dialog', { name: 'New Project' })).toBeVisible();
+});
 
 async function expectAudio(page, timeout) {
   const started = await page.waitForFunction(() => window.firstAudioDuration > 0, null, { timeout });

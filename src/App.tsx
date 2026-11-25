@@ -1,7 +1,7 @@
 import { useEffect, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
-import { ToastContainer, OfflineBanner } from '@/components/common';
+import { ToastContainer } from '@/components/common';
 import { ErrorBoundary, ViewErrorBoundary } from '@/components/ErrorBoundary';
 import { Home } from '@/pages/Home';
 import { AppPolicy } from '@/pages/AppPolicy';
@@ -82,9 +82,6 @@ function App() {
             <SettingsModal />
           </ViewErrorBoundary>
         </Suspense>
-
-        {/* Offline indicator */}
-        <OfflineBanner />
 
         {/* Toast notifications */}
         <ToastContainer />
